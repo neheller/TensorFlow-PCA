@@ -30,10 +30,10 @@ if __name__ == '__main__':
     if (len(sys.argv) > 2):
         index = int(sys.argv[2])
 
-    X = np.load('trainX.npy')
+    X = np.load('testX.npy')
     Xn = normalize(X)
 
-    Xtf = tf.placeholder(tf.float32, shape=[60000, 784])
+    Xtf = tf.placeholder(tf.float32, shape=[X.shape[0], X.shape[1]])
 
     stf, utf, vtf = tf.svd(Xtf)
 
