@@ -5,13 +5,14 @@ import sys
 import matplotlib.pyplot as plt
 
 def normalize(X):
-    tmp = np.divide(X, 255.0)
-    return tmp - np.mean(tmp)
+    means = np.mean(X, axis=0)
+    tmp = np.subtract(X, means)
+    return tmp, means
 
-def denormalize(Rn):
-    tmp = np.subtract(Rn, np.min(Rn))
-    tmp2 = np.multiply(np.divide(tmp, np.max(tmp)), 255).astype(np.uint8)
-    return tmp2
+
+def denormalize(Rn, means):
+    return np.add(Rn, means)
+
 
 def showim(lin):
     twodarr = np.array(lin).reshape((28,28))
@@ -31,11 +32,14 @@ if __name__ == '__main__':
         index = int(sys.argv[2])
 
     X = np.load('testX.npy')
-    Xn = normalize(X)
+    Xn, means = normalize(X)
+    Cov = np.matmul(np.transpose(Xn),Xn)
 
     Xtf = tf.placeholder(tf.float32, shape=[X.shape[0], X.shape[1]])
+    Covtf = tf.placeholder(tf.float32, shape=[Cov.shape[0], Cov.shape[1]])
 
-    stf, utf, vtf = tf.svd(Xtf)
+    stf, utf, vtf = tf.svd(Covtf)
+
 
     tvtf = tf.slice(vtf, [0, 0], [784, dims])
 
@@ -44,10 +48,11 @@ if __name__ == '__main__':
 
     with tf.Session() as sess:
         Rn = sess.run(Rtf, feed_dict = {
-            Xtf: Xn
+            Xtf: Xn,
+            Covtf: Cov
         })
 
-    R = denormalize(Rn)
+    R = denormalize(Rn, means)
 
     showim(X[index])
     showim(R[index])
